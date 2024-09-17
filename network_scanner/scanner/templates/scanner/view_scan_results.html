@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">View Scan Results</h1>
+
+<form method="get" class="mb-8 max-w-600">
+    <div class="form-row">
+        <div>
+            <label for="q" class="block mb-1">Search:</label>
+            <input type="text" name="q" id="q" value="{{ query }}" class="w-full mb-2"
+                placeholder="Search by MAC, Alias, or Manufacturer">
+        </div>
+    </div>
+    <div class="form-row">
+        <button type="submit" class="btn-primary">Search</button>
+    </div>
+</form>
+
+{% if scan_results %}
+<h2 class="text-xl font-bold mb-2">Scan Results</h2>
+<div class="table-container">
+    <table id="resultsTable">
+        <thead>
+            <tr>
+                <th>IP Address</th>
+                <th>MAC Address</th>
+                <th>Manufacturer</th>
+                <th>Alias</th>
+                <th>Last Seen</th>
+                <th>Ports</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in scan_results %}
+            <tr>
+                <td>{{ result.ip_address }}</td>
+                <td>{{ result.mac_address }}</td>
+                <td>{{ result.manufacturer }}</td>
+                <td>{{ result.alias|default:"" }}</td>
+                <td>{{ result.last_seen|date:"m-d-y | H:i" }}</td>
+                <td>
+                    {% if result.open_ports %}
+                    <button class="toggle-ports btn-primary btn-small" data-result-id="{{ result.id }}">Show
+                        Ports</button>
+                    <div id="ports-{{ result.id }}" class="hidden mt-2">
+                        {% for port, info in result.get_open_ports.items %}
+                        <p><strong>{{ port }}:</strong> {{ info.service }} {% if info.banner %}({{ info.banner
+                            }}){%endif%}</p>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    No port scan data
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="text-gray-600">No results found.</p>
+{% endif %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelector('table').addEventListener('click', function (event) {
+            if (event.target.classList.contains('toggle-ports')) {
+                const resultId = event.target.getAttribute('data-result-id');
+                togglePorts(resultId);
+            }
+        });
+    });
+
+    function togglePorts(id) {
+        const portsDiv = document.getElementById(`ports-${id}`);
+        portsDiv.classList.toggle('hidden');
+    }
+</script>
+{% endblock %}

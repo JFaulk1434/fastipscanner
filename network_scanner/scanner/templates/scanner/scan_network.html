@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<h1>Network Scanner</h1>
+
+<form id="network-scan-form" method="post" class="max-w-600">
+    {% csrf_token %}
+    <div class="form-row">
+        <div>
+            <label for="interface" class="block mb-1">Select Network Interface:</label>
+            <select name="interface" id="interface" class="w-full mb-2">
+                {% for interface in interfaces %}
+                <option value="{{ interface.ip }}">{{ interface.name }} ({{ interface.ip }})</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="form-row">
+        <button type="submit" id="scanButton" class="btn-primary">Scan Network</button>
+    </div>
+</form>
+
+<div id="scanningMessage" style="display: none;">
+    <p>Scanning network...</p>
+    <div id="progressBar"
+        style="width: 100%; background-color: #f0f0f0; height: 20px; border-radius: 10px; overflow: hidden;">
+        <div id="progressFill" style="width: 0%; height: 100%; background-color: #4CAF50; transition: width 0.1s;">
+        </div>
+    </div>
+</div>
+
+{% if scan_results %}
+<h2>Scan Results</h2>
+<div class="table-container">
+    <table id="resultsTable">
+        <thead>
+            <tr>
+                <th>IP Address</th>
+                <th>MAC Address</th>
+                <th>Manufacturer</th>
+                <th>Alias</th>
+                <th>Actions</th>
+                <th>Last Seen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in scan_results %}
+            <tr>
+                <td>{{ result.ip_address }}</td>
+                <td>{{ result.mac_address }}</td>
+                <td>{{ result.manufacturer }}</td>
+                <td>
+                    <span id="alias-{{ result.id }}">{{ result.alias|default:"" }}</span>
+                    <input type="text" id="input-{{ result.id }}" value="{{ result.alias|default:'' }}"
+                        style="display: none;">
+                </td>
+                <td>
+                    <button class="edit-button btn-primary btn-small" data-id="{{ result.id }}">Edit</button>
+                    <button class="save-button btn-primary btn-small" data-id="{{ result.id }}"
+                        style="display: none;">Save</button>
+                </td>
+                <td>{{ result.last_seen|date:"m-d-y" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const scanButton = document.getElementById('scanButton');
+        const scanningMessage = document.getElementById('scanningMessage');
+        const progressFill = document.getElementById('progressFill');
+
+        scanButton.addEventListener('click', function () {
+            scanningMessage.style.display = 'block';
+            let progress = 0;
+            const interval = setInterval(function () {
+                progress += 2; // Increase by 2% every 100ms
+                progressFill.style.width = progress + '%';
+                if (progress >= 100) {
+                    clearInterval(interval);
+                }
+            }, 100); // Update every 100ms
+
+            // Hide the progress bar after 5.5 seconds (5 seconds scan + 0.5 seconds buffer)
+            setTimeout(function () {
+                scanningMessage.style.display = 'none';
+            }, 5500);
+        });
+
+        // Edit Alias functionality
+        document.querySelectorAll('.edit-button').forEach(button => {
+            button.addEventListener('click', function () {
+                const id = this.dataset.id;
+                const aliasSpan = document.getElementById(`alias-${id}`);
+                const aliasInput = document.getElementById(`input-${id}`);
+                const saveButton = this.parentElement.querySelector('.save-button');
+
+                aliasSpan.style.display = 'none';
+                aliasInput.style.display = 'inline';
+                this.style.display = 'none';
+                saveButton.style.display = 'inline';
+            });
+        });
+
+        document.querySelectorAll('.save-button').forEach(button => {
+            button.addEventListener('click', function () {
+                const id = this.dataset.id;
+                const aliasSpan = document.getElementById(`alias-${id}`);
+                const aliasInput = document.getElementById(`input-${id}`);
+                const editButton = this.parentElement.querySelector('.edit-button');
+
+                const newAlias = aliasInput.value;
+
+                fetch('{% url "update_alias" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ deviceId: id, alias: newAlias })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            aliasSpan.textContent = newAlias;
+                            aliasSpan.style.display = 'inline';
+                            aliasInput.style.display = 'none';
+                            this.style.display = 'none';
+                            editButton.style.display = 'inline';
+                        } else {
+                            alert('Failed to update alias');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while updating the alias');
+                    });
+            });
+        });
+    });
+</script>
+{% endblock %}

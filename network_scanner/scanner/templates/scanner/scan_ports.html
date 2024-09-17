@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">Port Scanner</h1>
+
+{% if error %}
+<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+    <strong class="font-bold">Error:</strong>
+    <span class="block sm:inline">{{ error }}</span>
+</div>
+{% endif %}
+
+<form method="post" id="scan-form" class="max-w-600">
+    {% csrf_token %}
+    <div class="form-row">
+        <div>
+            <label for="ip_address" class="block mb-1">IP Address:</label>
+            <select name="ip_address" id="ip_address" required class="w-full mb-2">
+                <option value="">Select an IP address</option>
+                {% for ip in ip_addresses %}
+                <option value="{{ ip.ip_address }}">
+                    {{ ip.ip_address }} -
+                    MAC: {{ ip.mac_address }} -
+                    {% if ip.manufacturer %}Manufacturer: {{ ip.manufacturer }} - {% endif %}
+                    {% if ip.alias %}Alias: {{ ip.alias }}{% endif %}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="form-row">
+        <div>
+            <label for="manual_ip" class="block mb-1">Or enter IP Address manually:</label>
+            <input type="text" name="manual_ip" id="manual_ip" class="w-full mb-2">
+        </div>
+    </div>
+    <div class="form-row">
+        <div>
+            <label for="port_range" class="block mb-1">Port Range (e.g., 1-1024):</label>
+            <input type="text" name="port_range" id="port_range" value="1-1024" class="w-full mb-2">
+        </div>
+    </div>
+    <div class="form-row">
+        <button type="submit" class="btn-primary">Scan Ports</button>
+    </div>
+</form>
+
+<div id="scanningMessage" style="display: none;">
+    <p class="text-center mb-2">Scanning ports...</p>
+    <div id="progressBar" class="w-full bg-gray-200 rounded-full h-4 dark:bg-gray-700">
+        <div id="progressFill" class="bg-blue-600 h-4 rounded-full" style="width: 0%"></div>
+    </div>
+    <p id="progressText" class="mt-2 text-sm text-gray-600 text-center"></p>
+</div>
+
+<div id="scan-results" style="display: none;">
+    <h2 class="text-xl font-bold mb-2">Scan Results</h2>
+    <div class="overflow-x-auto">
+        <table id="resultsTable" class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Port</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Banner
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="results-body" class="bg-white divide-y divide-gray-200">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const scanForm = document.getElementById('scan-form');
+        const scanningMessage = document.getElementById('scanningMessage');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const scanResults = document.getElementById('scan-results');
+        const resultsBody = document.getElementById('results-body');
+
+        scanForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            scanningMessage.style.display = 'block';
+            scanResults.style.display = 'none';
+            resultsBody.innerHTML = '';
+            progressText.textContent = 'Initializing scan...';
+            progressFill.style.width = '0%';
+
+            fetch('/scan-ports/', {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                function read() {
+                    return reader.read().then(({ done, value }) => {
+                        if (done) {
+                            progressText.textContent = 'Scan complete. Processing results...';
+                            return;
+                        }
+                        const chunk = decoder.decode(value);
+                        const lines = chunk.split('\n\n');
+                        lines.forEach(line => {
+                            if (line.startsWith('data: ')) {
+                                const data = JSON.parse(line.slice(6));
+                                const percentage = (data.progress / data.total) * 100;
+                                progressFill.style.width = `${percentage}%`;
+                                progressText.textContent = `Scanning ports: ${data.progress} / ${data.total}`;
+
+                                if (data.complete) {
+                                    scanningMessage.style.display = 'none';
+                                    resultsBody.innerHTML = '';
+
+                                    if (Object.keys(data.open_ports).length === 0) {
+                                        resultsBody.innerHTML = '<tr><td colspan="3" class="px-6 py-4 text-center">No open ports found</td></tr>';
+                                    } else {
+                                        for (const [port, info] of Object.entries(data.open_ports)) {
+                                            const row = `
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">${port}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">${info.service || 'Unknown'}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">${info.banner || 'No banner'}</td>
+                                        </tr>
+                                    `;
+                                            resultsBody.innerHTML += row;
+                                        }
+                                    }
+                                    scanResults.style.display = 'block';
+                                }
+                            }
+                        });
+                        return read();
+                    });
+                }
+
+                return read();
+            }).catch(error => {
+                console.error('Error:', error);
+                scanningMessage.style.display = 'none';
+                progressText.textContent = 'An error occurred during the scan. Please try again.';
+            });
+        });
+    });
+</script>
+{% endblock %}

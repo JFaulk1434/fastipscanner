@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">Speed Test</h1>
+<div class="max-w-600">
+    <p class="mb-4">Click the button below to open Speedtest.net in a new tab:</p>
+    <form action="{{ speedtest_url }}" method="get" target="_blank">
+        <button type="submit" class="btn-primary">
+            Run Speed Test
+        </button>
+    </form>
+</div>
+{% endblock %}

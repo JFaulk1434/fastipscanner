@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Scanner</title>
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+</head>
+
+<body>
+    <header>
+        <nav>
+            <div class="container">
+                <a href="{% url 'home' %}" class="logo">Network Scanner</a>
+                <ul class="nav-links">
+                    <li><a href="{% url 'scan_network' %}">Scan Network</a></li>
+                    <li><a href="{% url 'scan_ports' %}">Scan Ports</a></li>
+                    <li><a href="{% url 'traceroute' %}">Traceroute</a></li>
+                    <li><a href="{% url 'speedtest' %}">Speed Test</a></li>
+                    <li><a href="{% url 'view_scan_results' %}">View Scan Results</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    <main class="container">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    {% block extra_js %}
+    {% endblock %}
+
+</body>
+
+</html>
