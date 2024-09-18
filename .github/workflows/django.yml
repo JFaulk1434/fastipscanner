@@ -20,6 +20,8 @@ jobs:
         pip install pyinstaller
     - name: Build with PyInstaller
       run: pyinstaller --name=Nettools --onefile --windowed --add-data "network_scanner;network_scanner" manage.py
+    - name: Install Inno Setup
+      run: choco install innosetup -y
     - name: Create Inno Setup Installer
       run: |
         choco install innosetup
