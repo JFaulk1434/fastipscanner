@@ -1,17 +1,16 @@
 name: Build and Release
 
 on:
-  push:
-    tags:
-      - 'v*' # Trigger on version tags
+  release:
+    types: [created]
 
 jobs:
   build_windows:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: '3.x'
     - name: Install dependencies
@@ -20,9 +19,11 @@ jobs:
         pip install -r requirements.txt
         pip install pyinstaller
     - name: Build with PyInstaller
-      run: pyinstaller --name=Nettools --onefile --windowed --add-data "path/to/your/django/project:django_project" main.py
+      run: pyinstaller --name=Nettools --onefile --windowed --add-data "network_scanner;network_scanner" main.py
     - name: Create Inno Setup Installer
-      run: iscc nettools_setup.iss
+      run: |
+        choco install innosetup
+        iscc nettools_setup.iss
     - name: Upload Windows Installer
       uses: actions/upload-release-asset@v1
       env:
@@ -36,9 +37,9 @@ jobs:
   build_macos:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: '3.x'
     - name: Install dependencies
@@ -48,7 +49,7 @@ jobs:
         pip install pyinstaller
         brew install create-dmg
     - name: Build with PyInstaller
-      run: pyinstaller --name=Nettools --onefile --windowed --add-data "path/to/your/django/project:django_project" main.py
+      run: pyinstaller --name=Nettools --onefile --windowed --add-data "network_scanner:network_scanner" main.py
     - name: Create DMG
       run: |
         create-dmg \
