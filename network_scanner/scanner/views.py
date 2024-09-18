@@ -4,7 +4,7 @@ import logging
 # Suppresses Scapy no address on IPv4 on MacOS for interfaces not being used.
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from .models import ScanResult
 from scapy.all import arping
 import netifaces
@@ -20,6 +20,7 @@ import threading
 import time
 import subprocess
 from django.utils import timezone
+from ipaddress import ip_address as ip_addr  # Import with an alias to avoid confusion
 
 logger = logging.getLogger(__name__)
 
@@ -105,9 +106,13 @@ def scan_network(request):
 
 
 def scan_ports(request):
-    ip_addresses = ScanResult.objects.values(
-        "ip_address", "mac_address", "manufacturer", "alias"
+    # Fetch all IP addresses
+    ip_addresses = list(
+        ScanResult.objects.values("ip_address", "mac_address", "manufacturer", "alias")
     )
+
+    # Sort the list based on IP address
+    ip_addresses.sort(key=lambda x: ip_addr(x["ip_address"]))
 
     if request.method == "POST":
         ip_address = request.POST.get("ip_address")
@@ -232,18 +237,28 @@ def speedtest(request):
 
 
 def view_scan_results(request):
-    query = request.GET.get("q", "")
-    scan_results = ScanResult.objects.all()
-
-    if query:
-        scan_results = scan_results.filter(
-            Q(mac_address__icontains=query)
-            | Q(alias__icontains=query)
+    query = request.GET.get("q", "")  # Use an empty string as default
+    if query and query != "None":  # Add this check
+        scan_results = ScanResult.objects.filter(
+            Q(ip_address__icontains=query)
+            | Q(mac_address__icontains=query)
             | Q(manufacturer__icontains=query)
-        )
+            | Q(alias__icontains=query)
+        ).order_by("-last_seen")
+    else:
+        scan_results = ScanResult.objects.all().order_by("-last_seen")
 
-    return render(
-        request,
-        "scanner/view_scan_results.html",
-        {"scan_results": scan_results, "query": query},
-    )
+    context = {
+        "scan_results": scan_results,
+        "query": ""
+        if query == "None"
+        else query,  # Ensure 'None' is not passed to the template
+    }
+    return render(request, "scanner/view_scan_results.html", context)
+
+
+def delete_selected_results(request):
+    if request.method == "POST":
+        selected_ids = request.POST.getlist("selected_results")
+        ScanResult.objects.filter(id__in=selected_ids).delete()
+    return redirect("view_scan_results")

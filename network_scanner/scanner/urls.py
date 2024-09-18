@@ -9,4 +9,9 @@ urlpatterns = [
     path("speedtest/", views.speedtest, name="speedtest"),
     path("view-scan-results/", views.view_scan_results, name="view_scan_results"),
     path("update-alias/", views.update_alias, name="update_alias"),
+    path(
+        "delete_selected_results/",
+        views.delete_selected_results,
+        name="delete_selected_results",
+    ),
 ]

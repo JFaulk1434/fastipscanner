@@ -3,6 +3,7 @@
 
 import os
 import sys
+from django.conf import settings
 
 
 def main():
@@ -16,6 +17,16 @@ def main():
             "available on your PYTHONPATH environment variable? Did you "
             "forget to activate a virtual environment?"
         ) from exc
+
+    # Use the PORT from settings
+    from django.core.management.commands.runserver import Command as runserver
+
+    runserver.default_port = str(settings.PORT)
+
+    if len(sys.argv) == 1:
+        # If no arguments are provided, run the server
+        sys.argv.extend(["runserver", f"0.0.0.0:{settings.PORT}"])
+
     execute_from_command_line(sys.argv)
 
 

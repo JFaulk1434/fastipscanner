@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 import signal
 import sys
+from network_scanner.app_info import APP_NAME, APP_VERSION
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,6 +31,10 @@ DEBUG = False
 
 ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
+PORT = 8099
+
+SITE_HEADER = APP_NAME
+VERSION = APP_VERSION
 
 # Application definition
 
@@ -67,6 +72,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "network_scanner.context_processors.app_info",
             ],
         },
     },

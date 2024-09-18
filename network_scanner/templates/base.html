@@ -5,15 +5,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Network Scanner</title>
+    <title>{{ APP_NAME }}</title>
     <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+    <style>
+        .logo-container {
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .logo-image {
+            height: 60px;
+            /* Adjust this value to fit your design */
+            width: auto;
+            margin-right: 10px;
+        }
+
+        .logo {
+            font-size: 2em;
+            font-weight: bold;
+            text-decoration: none;
+            color: white;
+        }
+
+        .version {
+            font-size: 1em;
+            margin-left: 10px;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+        }
+    </style>
 </head>
 
 <body>
     <header>
         <nav>
             <div class="container">
-                <a href="{% url 'home' %}" class="logo">Network Scanner</a>
+                <a href="{% url 'home' %}" class="logo-container">
+                    <img src="{% static 'images/logo_small.png' %}" alt="{{ APP_NAME }} logo" class="logo-image">
+                    <span class="logo">{{ APP_NAME }}</span>
+                    <span class="version">v{{ VERSION }}</span>
+                </a>
                 <ul class="nav-links">
                     <li><a href="{% url 'scan_network' %}">Scan Network</a></li>
                     <li><a href="{% url 'scan_ports' %}">Scan Ports</a></li>

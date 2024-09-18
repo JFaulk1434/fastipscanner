@@ -8,7 +8,7 @@
         <div>
             <label for="q" class="block mb-1">Search:</label>
             <input type="text" name="q" id="q" value="{{ query }}" class="w-full mb-2"
-                placeholder="Search by MAC, Alias, or Manufacturer">
+                placeholder="Search by IP, MAC, Alias, or Manufacturer">
         </div>
     </div>
     <div class="form-row">
@@ -18,70 +18,87 @@
 
 {% if scan_results %}
 <h2 class="text-xl font-bold mb-2">Scan Results</h2>
-<div class="table-container">
-    <table id="resultsTable">
-        <thead>
-            <tr>
-                <th>IP Address</th>
-                <th>MAC Address</th>
-                <th>Manufacturer</th>
-                <th>Alias</th>
-                <th>Last Seen</th>
-                <th>Ports</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for result in scan_results %}
-            <tr class="result-row" data-result-id="{{ result.id }}">
-                <td>{{ result.ip_address }}</td>
-                <td>{{ result.mac_address }}</td>
-                <td>{{ result.manufacturer }}</td>
-                <td>{{ result.alias|default:"" }}</td>
-                <td>{{ result.last_seen|date:"m-d-y | H:i" }}</td>
-                <td>
-                    {% if result.open_ports %}
-                    <button class="toggle-ports btn-primary btn-small" data-result-id="{{ result.id }}">Show
-                        Ports</button>
-                    {% else %}
-                    No port scan data
-                    {% endif %}
-                </td>
-            </tr>
-            {% if result.open_ports %}
-            <tr class="ports-row hidden" id="ports-row-{{ result.id }}">
-                <td colspan="6">
-                    <div class="ports-content">
-                        {% for port, info in result.get_open_ports.items %}
-                        <div class="port-item">
-                            <span class="port-number">{{ port }}</span>
-                            <span class="port-service">{{ info.service }}</span>
-                            {% if info.banner %}
-                            <span class="port-banner" title="{{ info.banner }}">({{ info.banner|truncatechars:30
-                                }})</span>
-                            {% endif %}
+<form method="post" action="{% url 'delete_selected_results' %}">
+    {% csrf_token %}
+    <div class="table-container">
+        <table id="resultsTable">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="selectAll"></th>
+                    <th>IP Address</th>
+                    <th>MAC Address</th>
+                    <th>Manufacturer</th>
+                    <th>Alias</th>
+                    <th>Last Seen</th>
+                    <th>Ports</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result in scan_results %}
+                <tr class="result-row" data-result-id="{{ result.id }}">
+                    <td><input type="checkbox" name="selected_results" value="{{ result.id }}"></td>
+                    <td><a href="{% url 'scan_ports' %}?ip={{ result.ip_address }}"
+                            class="text-blue-500 hover:underline">{{ result.ip_address }}</a></td>
+                    <td>{{ result.mac_address }}</td>
+                    <td>{{ result.manufacturer }}</td>
+                    <td>{{ result.alias|default:"" }}</td>
+                    <td>{{ result.last_seen|date:"m-d-y | H:i" }}</td>
+                    <td>
+                        {% if result.open_ports %}
+                        <button class="toggle-ports btn-primary btn-small" data-result-id="{{ result.id }}">Show
+                            Ports</button>
+                        {% else %}
+                        No port scan data
+                        {% endif %}
+                    </td>
+                </tr>
+                {% if result.open_ports %}
+                <tr class="ports-row hidden" id="ports-row-{{ result.id }}">
+                    <td colspan="7">
+                        <div class="ports-content">
+                            {% for port, info in result.get_open_ports.items %}
+                            <div class="port-item">
+                                <span class="port-number">{{ port }}</span>
+                                <span class="port-service">{{ info.service }}</span>
+                                {% if info.banner %}
+                                <span class="port-banner" title="{{ info.banner }}">({{ info.banner|truncatechars:30
+                                    }})</span>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
-                    </div>
-                </td>
-            </tr>
-            {% endif %}
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="mt-4">
+        <button type="submit" class="btn-danger">Delete Selected</button>
+    </div>
+</form>
 {% else %}
 <p class="text-gray-600">No results found.</p>
 {% endif %}
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        document.getElementById('resultsTable').addEventListener('click', function (event) {
+        const resultsTable = document.getElementById('resultsTable');
+        const selectAllCheckbox = document.getElementById('selectAll');
+
+        resultsTable.addEventListener('click', function (event) {
             if (event.target.classList.contains('toggle-ports')) {
                 const resultId = event.target.getAttribute('data-result-id');
                 const portsRow = document.getElementById(`ports-row-${resultId}`);
                 portsRow.classList.toggle('hidden');
                 event.target.textContent = portsRow.classList.contains('hidden') ? 'Show Ports' : 'Hide Ports';
             }
+        });
+
+        selectAllCheckbox.addEventListener('change', function () {
+            const checkboxes = document.querySelectorAll('input[name="selected_results"]');
+            checkboxes.forEach(checkbox => checkbox.checked = selectAllCheckbox.checked);
         });
     });
 </script>

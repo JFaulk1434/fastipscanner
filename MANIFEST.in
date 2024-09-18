@@ -1,0 +1,3 @@
+include README.md
+recursive-include network_scanner/static *
+recursive-include network_scanner/templates *
