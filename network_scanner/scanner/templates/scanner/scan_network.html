@@ -48,7 +48,8 @@
         <tbody>
             {% for result in scan_results %}
             <tr>
-                <td>{{ result.ip_address }}</td>
+                <td><a href="http://{{ result.ip_address }}" target="_blank" rel="noopener noreferrer">
+                        {{ result.ip_address }}</a></td>
                 <td>{{ result.mac_address }}</td>
                 <td>{{ result.manufacturer }}</td>
                 <td>

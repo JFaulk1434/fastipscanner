@@ -81,9 +81,6 @@ def scan_network(request):
                 mac = received.hwsrc
                 ip = received.psrc
                 manufacturer = p.get_manuf_long(mac) or p.get_manuf(mac) or "Unknown"
-                logger.info(
-                    f"Device found: IP={ip}, MAC={mac}, Manufacturer={manufacturer}"
-                )
                 scan_result, created = ScanResult.objects.update_or_create(
                     mac_address=mac,
                     defaults={
@@ -97,7 +94,6 @@ def scan_network(request):
             logger.debug(f"Scan results: {scan_results}")  # Debug print
             logger.info(f"Total scan results: {len(scan_results)}")
         except Exception as e:
-            logger.debug(f"Error during scan: {str(e)}")  # Debug print
             logger.error(f"Error during network scan: {str(e)}")
             scan_results = []
 

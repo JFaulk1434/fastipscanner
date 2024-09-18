@@ -32,7 +32,7 @@
         </thead>
         <tbody>
             {% for result in scan_results %}
-            <tr>
+            <tr class="result-row" data-result-id="{{ result.id }}">
                 <td>{{ result.ip_address }}</td>
                 <td>{{ result.mac_address }}</td>
                 <td>{{ result.manufacturer }}</td>
@@ -42,17 +42,29 @@
                     {% if result.open_ports %}
                     <button class="toggle-ports btn-primary btn-small" data-result-id="{{ result.id }}">Show
                         Ports</button>
-                    <div id="ports-{{ result.id }}" class="hidden mt-2">
-                        {% for port, info in result.get_open_ports.items %}
-                        <p><strong>{{ port }}:</strong> {{ info.service }} {% if info.banner %}({{ info.banner
-                            }}){%endif%}</p>
-                        {% endfor %}
-                    </div>
                     {% else %}
                     No port scan data
                     {% endif %}
                 </td>
             </tr>
+            {% if result.open_ports %}
+            <tr class="ports-row hidden" id="ports-row-{{ result.id }}">
+                <td colspan="6">
+                    <div class="ports-content">
+                        {% for port, info in result.get_open_ports.items %}
+                        <div class="port-item">
+                            <span class="port-number">{{ port }}</span>
+                            <span class="port-service">{{ info.service }}</span>
+                            {% if info.banner %}
+                            <span class="port-banner" title="{{ info.banner }}">({{ info.banner|truncatechars:30
+                                }})</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </td>
+            </tr>
+            {% endif %}
             {% endfor %}
         </tbody>
     </table>
@@ -63,17 +75,86 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        document.querySelector('table').addEventListener('click', function (event) {
+        document.getElementById('resultsTable').addEventListener('click', function (event) {
             if (event.target.classList.contains('toggle-ports')) {
                 const resultId = event.target.getAttribute('data-result-id');
-                togglePorts(resultId);
+                const portsRow = document.getElementById(`ports-row-${resultId}`);
+                portsRow.classList.toggle('hidden');
+                event.target.textContent = portsRow.classList.contains('hidden') ? 'Show Ports' : 'Hide Ports';
             }
         });
     });
-
-    function togglePorts(id) {
-        const portsDiv = document.getElementById(`ports-${id}`);
-        portsDiv.classList.toggle('hidden');
-    }
 </script>
+
+<style>
+    .table-container {
+        overflow-x: auto;
+    }
+
+    #resultsTable {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    #resultsTable th,
+    #resultsTable td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+
+    .result-row:nth-child(4n+1),
+    .result-row:nth-child(4n+2) {
+        background-color: #f2f2f2;
+    }
+
+    .ports-row td {
+        padding: 0;
+        border-top: none;
+    }
+
+    .ports-content {
+        padding: 10px;
+        background-color: #e9e9e9;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .port-item {
+        display: inline-flex;
+        align-items: center;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 2px 6px;
+        margin-right: 5px;
+        margin-bottom: 5px;
+        max-width: 100%;
+        overflow: hidden;
+    }
+
+    .port-number {
+        font-weight: bold;
+        margin-right: 5px;
+    }
+
+    .port-service {
+        margin-right: 5px;
+    }
+
+    .port-banner {
+        font-size: 0.9em;
+        color: #666;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>
 {% endblock %}
