@@ -19,7 +19,7 @@ jobs:
         pip install -r requirements.txt
         pip install pyinstaller
     - name: Build with PyInstaller
-      run: pyinstaller --name=Nettools --onefile --windowed --add-data "network_scanner;network_scanner" network_scanner/manage.py
+      run: pyinstaller --name=Nettools --onefile --windowed --add-data "network_scanner;network_scanner" manage.py
     - name: Create Inno Setup Installer
       run: |
         choco install innosetup
@@ -49,7 +49,7 @@ jobs:
         pip install pyinstaller
         brew install create-dmg
     - name: Build with PyInstaller
-      run: pyinstaller --name=Nettools --onefile --windowed --add-data "network_scanner:network_scanner" network_scanner/manage.py
+      run: pyinstaller --name=Nettools --onefile --windowed --add-data "network_scanner:network_scanner" manage.py
     - name: Create DMG
       run: |
         create-dmg \
