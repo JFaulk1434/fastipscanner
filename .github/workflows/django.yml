@@ -1,0 +1,72 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger on version tags
+
+jobs:
+  build_windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+    - name: Build with PyInstaller
+      run: pyinstaller --name=Nettools --onefile --windowed --add-data "path/to/your/django/project:django_project" main.py
+    - name: Create Inno Setup Installer
+      run: iscc nettools_setup.iss
+    - name: Upload Windows Installer
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./Output/nettools_setup.exe
+        asset_name: nettools_setup.exe
+        asset_content_type: application/vnd.microsoft.portable-executable
+
+  build_macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        brew install create-dmg
+    - name: Build with PyInstaller
+      run: pyinstaller --name=Nettools --onefile --windowed --add-data "path/to/your/django/project:django_project" main.py
+    - name: Create DMG
+      run: |
+        create-dmg \
+          --volname "Nettools Installer" \
+          --window-pos 200 120 \
+          --window-size 800 400 \
+          --icon-size 100 \
+          --icon "Nettools.app" 200 190 \
+          --hide-extension "Nettools.app" \
+          --app-drop-link 600 185 \
+          "Nettools-Installer.dmg" \
+          "dist/Nettools.app"
+    - name: Upload macOS Installer
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./Nettools-Installer.dmg
+        asset_name: Nettools-Installer.dmg
+        asset_content_type: application/x-apple-diskimage
