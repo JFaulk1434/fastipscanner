@@ -81,13 +81,10 @@ jobs:
           pip install pyinstaller
           brew install create-dmg
       - name: Build with PyInstaller
-        env:
-          MACOSX_DEPLOYMENT_TARGET: "10.15" # Adjust this to your minimum supported macOS version
         run: |
           pyinstaller --name=FastIPScanner --onefile --windowed \
             --add-data "network_scanner:network_scanner" \
             --add-data "network_scanner/network_scanner/app_info.py:network_scanner" \
-            --target-architecture universal2 \
             network_scanner/manage.py
       - name: Create DMG
         run: |
