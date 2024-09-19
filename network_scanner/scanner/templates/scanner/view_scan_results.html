@@ -37,12 +37,17 @@
                 {% for result in scan_results %}
                 <tr class="result-row" data-result-id="{{ result.id }}">
                     <td><input type="checkbox" name="selected_results" value="{{ result.id }}"></td>
-                    <td><a href="{% url 'scan_ports' %}?ip={{ result.ip_address }}"
-                            class="text-blue-500 hover:underline">{{ result.ip_address }}</a></td>
+                    <td><a href="http://{{ result.ip_address }}" target="_blank" rel="noopener noreferrer">
+                            {{ result.ip_address }}</a></td>
                     <td>{{ result.mac_address }}</td>
                     <td>{{ result.manufacturer }}</td>
-                    <td>{{ result.alias|default:"" }}</td>
-                    <td>{{ result.last_seen|date:"m-d-y | H:i" }}</td>
+                    <td class="alias-cell">
+                        <span class="alias-text" data-id="{{ result.id }}">{{ result.alias }}</span>
+                        <input type="text" class="alias-input" data-id="{{ result.id }}"
+                            name="alias_input_{{ result.id }}" value="{{ result.alias }}" style="display: none;">
+                        <i class="fas fa-pencil-alt edit-icon" data-id="{{ result.id }}"></i>
+                    </td>
+                    <td>{{ result.last_seen|date:"m-d-y" }}</td>
                     <td>
                         {% if result.open_ports %}
                         <button class="toggle-ports btn-primary btn-small" data-result-id="{{ result.id }}">Show
@@ -52,54 +57,165 @@
                         {% endif %}
                     </td>
                 </tr>
-                {% if result.open_ports %}
-                <tr class="ports-row hidden" id="ports-row-{{ result.id }}">
-                    <td colspan="7">
-                        <div class="ports-content">
-                            {% for port, info in result.get_open_ports.items %}
-                            <div class="port-item">
-                                <span class="port-number">{{ port }}</span>
-                                <span class="port-service">{{ info.service }}</span>
-                                {% if info.banner %}
-                                <span class="port-banner" title="{{ info.banner }}">({{ info.banner|truncatechars:30
-                                    }})</span>
-                                {% endif %}
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </td>
-                </tr>
-                {% endif %}
                 {% endfor %}
             </tbody>
         </table>
     </div>
     <div class="mt-4">
-        <button type="submit" class="btn-danger">Delete Selected</button>
+        <button type="submit" class="btn btn-danger">Delete Selected</button>
     </div>
 </form>
 {% else %}
 <p class="text-gray-600">No results found.</p>
 {% endif %}
 
+<!-- Add this modal structure at the end of your body tag -->
+<div id="portsModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="modalTitle">Open Ports</h2>
+        <div id="modalBody"></div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const resultsTable = document.getElementById('resultsTable');
+        const modal = document.getElementById('portsModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        const closeBtn = document.getElementsByClassName('close')[0];
+
+        document.querySelectorAll('.toggle-ports').forEach(button => {
+            button.addEventListener('click', function (event) {
+                event.preventDefault();
+                console.log('Show Ports button clicked');
+                const resultId = this.getAttribute('data-result-id');
+                const ipAddress = this.closest('tr').querySelector('td:nth-child(2)').textContent;
+
+                fetch(`/get-ports/${resultId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Fetch response:', data);
+                        modalTitle.textContent = `Open Ports for ${ipAddress}`;
+                        modalBody.innerHTML = `
+                            <table class="ports-table">
+                                <thead>
+                                    <tr>
+                                        <th>Port</th>
+                                        <th>Service</th>
+                                        <th>Banner</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        `;
+                        const tableBody = modalBody.querySelector('tbody');
+                        for (const [port, info] of Object.entries(data.open_ports)) {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${port}</td>
+                                <td>${info.service || 'Unknown'}</td>
+                                <td>${info.banner || '-'}</td>
+                            `;
+                            tableBody.appendChild(row);
+                        }
+                        modal.style.display = 'block';
+                        console.log('Modal should be visible now');
+                    });
+            });
+        });
+
         const selectAllCheckbox = document.getElementById('selectAll');
 
-        resultsTable.addEventListener('click', function (event) {
-            if (event.target.classList.contains('toggle-ports')) {
-                const resultId = event.target.getAttribute('data-result-id');
-                const portsRow = document.getElementById(`ports-row-${resultId}`);
-                portsRow.classList.toggle('hidden');
-                event.target.textContent = portsRow.classList.contains('hidden') ? 'Show Ports' : 'Hide Ports';
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function () {
+                const checkboxes = document.querySelectorAll('input[name^="selected_results_"]');
+                checkboxes.forEach(checkbox => checkbox.checked = selectAllCheckbox.checked);
+            });
+        }
+
+        closeBtn.onclick = function () {
+            modal.style.display = 'none';
+        }
+
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
             }
+        }
+
+        document.querySelectorAll('.edit-icon').forEach(icon => {
+            icon.addEventListener('click', function () {
+                console.log('Edit icon clicked');
+                const cell = this.closest('.alias-cell');
+                const text = cell.querySelector('.alias-text');
+                const input = cell.querySelector('.alias-input');
+
+                text.style.display = 'none';
+                input.style.display = 'inline-block';
+                input.focus();
+            });
         });
 
-        selectAllCheckbox.addEventListener('change', function () {
-            const checkboxes = document.querySelectorAll('input[name="selected_results"]');
-            checkboxes.forEach(checkbox => checkbox.checked = selectAllCheckbox.checked);
+        document.querySelectorAll('.alias-input').forEach(input => {
+            input.addEventListener('blur', function () {
+                const cell = this.closest('.alias-cell');
+                const text = cell.querySelector('.alias-text');
+                const deviceId = this.getAttribute('data-id');
+                const newAlias = this.value.trim();
+
+                // Send AJAX request to update the alias
+                fetch('/update-alias/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // Note: We're not including CSRF token because the view is csrf_exempt
+                    },
+                    body: JSON.stringify({
+                        deviceId: deviceId,
+                        alias: newAlias
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            text.textContent = newAlias;
+                            text.style.display = 'inline-block';
+                            this.style.display = 'none';
+                        } else {
+                            alert('Failed to update alias: ' + (data.error || 'Unknown error'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while updating the alias');
+                    });
+            });
+
+            input.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    this.blur();
+                }
+            });
         });
+
+        // Function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
     });
 </script>
+
 {% endblock %}

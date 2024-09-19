@@ -1,4 +1,6 @@
 import logging
+import platform
+import subprocess
 
 
 # Suppresses Scapy no address on IPv4 on MacOS for interfaces not being used.
@@ -20,7 +22,9 @@ import threading
 import time
 import subprocess
 from django.utils import timezone
-from ipaddress import ip_address as ip_addr  # Import with an alias to avoid confusion
+from ipaddress import ip_address as ip_addr
+from django.shortcuts import redirect
+from django.contrib import messages
 
 logger = logging.getLogger(__name__)
 
@@ -51,12 +55,37 @@ def home(request):
 
 def get_network_interfaces():
     interfaces = []
-    for iface in netifaces.interfaces():
-        addrs = netifaces.ifaddresses(iface)
-        if netifaces.AF_INET in addrs:
-            ip = addrs[netifaces.AF_INET][0]["addr"]
-            if not ip.startswith("127."):
-                interfaces.append({"name": iface, "ip": ip})
+    if platform.system() == "Windows":
+        try:
+            # Use 'netsh' command to get interface information on Windows
+            output = subprocess.check_output(
+                ["netsh", "interface", "ipv4", "show", "addresses"]
+            ).decode("utf-8")
+            current_interface = None
+            for line in output.split("\n"):
+                if "Interface" in line:
+                    current_interface = line.split('"')[1]
+                elif "IP Address:" in line and current_interface:
+                    ip = line.split(":")[1].strip()
+                    if not ip.startswith("127."):
+                        interfaces.append({"name": current_interface, "ip": ip})
+                    current_interface = None
+        except subprocess.CalledProcessError:
+            # Fallback to the original method if 'netsh' fails
+            for iface in netifaces.interfaces():
+                addrs = netifaces.ifaddresses(iface)
+                if netifaces.AF_INET in addrs:
+                    ip = addrs[netifaces.AF_INET][0]["addr"]
+                    if not ip.startswith("127."):
+                        interfaces.append({"name": iface, "ip": ip})
+    else:
+        # Original method for non-Windows systems
+        for iface in netifaces.interfaces():
+            addrs = netifaces.ifaddresses(iface)
+            if netifaces.AF_INET in addrs:
+                ip = addrs[netifaces.AF_INET][0]["addr"]
+                if not ip.startswith("127."):
+                    interfaces.append({"name": iface, "ip": ip})
     return interfaces
 
 
@@ -260,5 +289,16 @@ def view_scan_results(request):
 def delete_selected_results(request):
     if request.method == "POST":
         selected_ids = request.POST.getlist("selected_results")
-        ScanResult.objects.filter(id__in=selected_ids).delete()
+        if selected_ids:
+            ScanResult.objects.filter(id__in=selected_ids).delete()
+            messages.success(
+                request, f"{len(selected_ids)} result(s) deleted successfully."
+            )
+        else:
+            messages.warning(request, "No results were selected for deletion.")
     return redirect("view_scan_results")
+
+
+def get_ports(request, result_id):
+    scan_result = ScanResult.objects.get(id=result_id)
+    return JsonResponse({"open_ports": scan_result.get_open_ports()})

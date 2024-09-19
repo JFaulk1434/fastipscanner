@@ -41,7 +41,6 @@
                 <th>MAC Address</th>
                 <th>Manufacturer</th>
                 <th>Alias</th>
-                <th>Actions</th>
                 <th>Last Seen</th>
             </tr>
         </thead>
@@ -52,15 +51,11 @@
                         {{ result.ip_address }}</a></td>
                 <td>{{ result.mac_address }}</td>
                 <td>{{ result.manufacturer }}</td>
-                <td>
-                    <span id="alias-{{ result.id }}">{{ result.alias|default:"" }}</span>
-                    <input type="text" id="input-{{ result.id }}" value="{{ result.alias|default:'' }}"
+                <td class="alias-cell">
+                    <span class="alias-text" data-id="{{ result.id }}">{{ result.alias }}</span>
+                    <input type="text" class="alias-input" data-id="{{ result.id }}" value="{{ result.alias }}"
                         style="display: none;">
-                </td>
-                <td>
-                    <button class="edit-button btn-primary btn-small" data-id="{{ result.id }}">Edit</button>
-                    <button class="save-button btn-primary btn-small" data-id="{{ result.id }}"
-                        style="display: none;">Save</button>
+                    <i class="fas fa-pencil-alt edit-icon" data-id="{{ result.id }}"></i>
                 </td>
                 <td>{{ result.last_seen|date:"m-d-y" }}</td>
             </tr>
@@ -95,29 +90,29 @@
             }, 5500);
         });
 
-        // Edit Alias functionality
-        document.querySelectorAll('.edit-button').forEach(button => {
-            button.addEventListener('click', function () {
+        // Alias editing functionality
+        document.querySelectorAll('.alias-text, .edit-icon').forEach(el => {
+            el.addEventListener('click', function () {
                 const id = this.dataset.id;
-                const aliasSpan = document.getElementById(`alias-${id}`);
-                const aliasInput = document.getElementById(`input-${id}`);
-                const saveButton = this.parentElement.querySelector('.save-button');
+                const container = this.closest('div');
+                const span = container.querySelector('.alias-text');
+                const input = container.querySelector('.alias-input');
+                const icon = container.querySelector('.edit-icon');
 
-                aliasSpan.style.display = 'none';
-                aliasInput.style.display = 'inline';
-                this.style.display = 'none';
-                saveButton.style.display = 'inline';
+                span.style.display = 'none';
+                input.style.display = 'block';
+                input.focus();
+                icon.style.display = 'none';
             });
         });
 
-        document.querySelectorAll('.save-button').forEach(button => {
-            button.addEventListener('click', function () {
+        document.querySelectorAll('.alias-input').forEach(input => {
+            input.addEventListener('blur', function () {
                 const id = this.dataset.id;
-                const aliasSpan = document.getElementById(`alias-${id}`);
-                const aliasInput = document.getElementById(`input-${id}`);
-                const editButton = this.parentElement.querySelector('.edit-button');
-
-                const newAlias = aliasInput.value;
+                const container = this.closest('div');
+                const span = container.querySelector('.alias-text');
+                const icon = container.querySelector('.edit-icon');
+                const newAlias = this.value.trim();
 
                 fetch('{% url "update_alias" %}', {
                     method: 'POST',
@@ -130,11 +125,10 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            aliasSpan.textContent = newAlias;
-                            aliasSpan.style.display = 'inline';
-                            aliasInput.style.display = 'none';
+                            span.textContent = newAlias;
+                            span.style.display = 'inline-block';
                             this.style.display = 'none';
-                            editButton.style.display = 'inline';
+                            icon.style.display = 'block';
                         } else {
                             alert('Failed to update alias');
                         }
@@ -144,7 +138,14 @@
                         alert('An error occurred while updating the alias');
                     });
             });
+
+            input.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    this.blur();
+                }
+            });
         });
     });
 </script>
+
 {% endblock %}

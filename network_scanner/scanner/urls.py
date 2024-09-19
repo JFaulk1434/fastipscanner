@@ -14,4 +14,5 @@ urlpatterns = [
         views.delete_selected_results,
         name="delete_selected_results",
     ),
+    path("get-ports/<int:result_id>/", views.get_ports, name="get_ports"),
 ]
