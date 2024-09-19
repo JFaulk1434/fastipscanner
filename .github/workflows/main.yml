@@ -22,10 +22,13 @@ jobs:
         run: pyinstaller --name=Nettools --onefile --windowed --add-data "network_scanner;network_scanner" manage.py
       - name: Install Inno Setup
         run: choco install innosetup -y
+      - name: Get App Info
+        run: |
+          echo "APP_INFO=$(python get_app_info.py)" >> $GITHUB_ENV
       - name: Create Inno Setup Installer
         run: |
-          choco install innosetup
-          iscc nettools_setup.iss
+          dir dist
+          iscc ${{ env.APP_INFO }} nettools_setup.iss
       - name: Upload Windows Installer
         uses: actions/upload-release-asset@v1
         env:

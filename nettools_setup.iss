@@ -1,18 +1,22 @@
+#define MyAppName "Nettools"
+#define MyAppVersion "1.0.0"
+#define MyAppExeName "Nettools.exe"
+
 [Setup]
-AppName=Nettools
-AppVersion=1.0.0
-DefaultDirName={pf}\Nettools
-DefaultGroupName=Nettools
+AppName={#MyAppName}
+AppVersion={#MyAppVersion}
+DefaultDirName={pf}\{#MyAppName}
+DefaultGroupName={#MyAppName}
 OutputDir=Output
-OutputBaseFilename=nettools_setup
+OutputBaseFilename={#MyAppName}_setup_{#MyAppVersion}
 
 [Files]
-Source: "dist\Nettools.exe"; DestDir: "{app}"
+Source: "dist\{#MyAppExeName}"; DestDir: "{app}"
 Source: "dist\*"; DestDir: "{app}"; Flags: recursesubdirs
 
 [Icons]
-Name: "{group}\Nettools"; Filename: "{app}\Nettools.exe"
-Name: "{commondesktop}\Nettools"; Filename: "{app}\Nettools.exe"
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 
 [Run]
-Filename: "{app}\Nettools.exe"; Description: "Launch Nettools"; Flags: postinstall nowait skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppName}"; Flags: postinstall nowait skipifsilent
