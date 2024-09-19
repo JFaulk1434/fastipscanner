@@ -130,7 +130,7 @@
 
         if (selectAllCheckbox) {
             selectAllCheckbox.addEventListener('change', function () {
-                const checkboxes = document.querySelectorAll('input[name^="selected_results_"]');
+                const checkboxes = document.querySelectorAll('input[name="selected_results"]');
                 checkboxes.forEach(checkbox => checkbox.checked = selectAllCheckbox.checked);
             });
         }
