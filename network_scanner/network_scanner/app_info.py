@@ -1,5 +1,5 @@
 APP_NAME = "Fast IP Scanner"
-APP_VERSION = "1.1.2"
+APP_VERSION = "1.1.3"
 APP_DESCRIPTION = """
 Fast IP Scanner is a powerful and user-friendly network analysis tool. 
 It provides a clean web interface for rapid IP scanning, port scanning, 
