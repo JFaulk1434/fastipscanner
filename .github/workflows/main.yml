@@ -25,6 +25,7 @@ jobs:
         run: python network_scanner/manage.py collectstatic --noinput
       - name: Build with PyInstaller
         run: |
+          dir
           pyinstaller --name=FastIPScanner --onefile --windowed `
             --add-data "network_scanner;network_scanner" `
             --add-data "network_scanner/network_scanner/app_info.py;network_scanner" `
