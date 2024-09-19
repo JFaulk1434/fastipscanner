@@ -11,9 +11,9 @@ jobs:
   build_windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.x"
       - name: Install dependencies
@@ -46,7 +46,7 @@ jobs:
           dir dist
           iscc ${{ env.APP_INFO }} nettools_setup.iss
       - name: Upload Windows Installer
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: FastIPScanner-Installer.exe
           path: ./Output/FastIPScanner_setup_*.exe
@@ -54,9 +54,9 @@ jobs:
   build_macos:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.x"
       - name: Install dependencies
@@ -68,21 +68,21 @@ jobs:
       - name: Build with PyInstaller
         run: |
           ls -R
-          pyinstaller --name=Nettools --onefile --windowed --add-data "network_scanner:network_scanner" --add-data "network_scanner/network_scanner/app_info.py:network_scanner" network_scanner/manage.py
+          pyinstaller --name=FastIPScanner --onefile --windowed --add-data "network_scanner:network_scanner" --add-data "network_scanner/network_scanner/app_info.py:network_scanner" network_scanner/manage.py
       - name: Create DMG
         run: |
           create-dmg \
-            --volname "Nettools Installer" \
+            --volname "Fast IP Scanner Installer" \
             --window-pos 200 120 \
             --window-size 800 400 \
             --icon-size 100 \
-            --icon "Nettools.app" 200 190 \
-            --hide-extension "Nettools.app" \
+            --icon "FastIPScanner.app" 200 190 \
+            --hide-extension "FastIPScanner.app" \
             --app-drop-link 600 185 \
-            "Nettools-Installer.dmg" \
-            "dist/Nettools.app"
+            "FastIPScanner-Installer.dmg" \
+            "dist/FastIPScanner.app"
       - name: Upload macOS Installer
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: FastIPScanner-Installer.dmg
           path: ./FastIPScanner-Installer.dmg
