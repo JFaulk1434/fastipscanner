@@ -19,7 +19,9 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
       - name: Build with PyInstaller
-        run: pyinstaller --name=Nettools --onefile --windowed --add-data "network_scanner;network_scanner" manage.py
+        run: |
+          dir
+          pyinstaller --name=Nettools --onefile --windowed --add-data "network_scanner;network_scanner" network_scanner/manage.py
       - name: Install Inno Setup
         run: choco install innosetup -y
       - name: Get App Info
