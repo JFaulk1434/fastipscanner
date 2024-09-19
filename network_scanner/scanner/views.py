@@ -1,6 +1,8 @@
 import logging
 import platform
 import subprocess
+import psutil
+import ipaddress
 
 
 # Suppresses Scapy no address on IPv4 on MacOS for interfaces not being used.
@@ -8,7 +10,7 @@ logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 
 from django.shortcuts import render, redirect
 from .models import ScanResult
-from scapy.all import arping
+from scapy.all import arping, IP, ICMP, sr1
 import netifaces
 import ipaddress
 from django.http import JsonResponse, StreamingHttpResponse
@@ -55,37 +57,44 @@ def home(request):
 
 def get_network_interfaces():
     interfaces = []
+    for interface, addrs in psutil.net_if_addrs().items():
+        for addr in addrs:
+            if addr.family == 2:  # AF_INET (IPv4)
+                ip = addr.address
+                if not ipaddress.ip_address(ip).is_loopback:
+                    name = get_friendly_name(interface)
+                    interfaces.append({"name": name, "ip": ip})
+    return interfaces
+
+
+def get_friendly_name(interface):
     if platform.system() == "Windows":
+        import winreg
+
         try:
-            # Use 'netsh' command to get interface information on Windows
-            output = subprocess.check_output(
-                ["netsh", "interface", "ipv4", "show", "addresses"]
-            ).decode("utf-8")
-            current_interface = None
-            for line in output.split("\n"):
-                if "Interface" in line:
-                    current_interface = line.split('"')[1]
-                elif "IP Address:" in line and current_interface:
-                    ip = line.split(":")[1].strip()
-                    if not ip.startswith("127."):
-                        interfaces.append({"name": current_interface, "ip": ip})
-                    current_interface = None
-        except subprocess.CalledProcessError:
-            # Fallback to the original method if 'netsh' fails
-            for iface in netifaces.interfaces():
-                addrs = netifaces.ifaddresses(iface)
-                if netifaces.AF_INET in addrs:
-                    ip = addrs[netifaces.AF_INET][0]["addr"]
-                    if not ip.startswith("127."):
-                        interfaces.append({"name": iface, "ip": ip})
+            reg = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
+            reg_key = winreg.OpenKey(
+                reg,
+                r"SYSTEM\CurrentControlSet\Control\Network\{4d36e972-e325-11ce-bfc1-08002be10318}",
+            )
+            sub_key = winreg.OpenKey(reg_key, f"{interface}\\Connection")
+            name = winreg.QueryValueEx(sub_key, "Name")[0]
+            return name
+        except:
+            return interface
     else:
-        # Original method for non-Windows systems
-        for iface in netifaces.interfaces():
-            addrs = netifaces.ifaddresses(iface)
-            if netifaces.AF_INET in addrs:
-                ip = addrs[netifaces.AF_INET][0]["addr"]
-                if not ip.startswith("127."):
-                    interfaces.append({"name": iface, "ip": ip})
+        # For macOS and Linux, the interface name is usually already friendly
+        return interface
+
+
+def get_interfaces_fallback():
+    interfaces = []
+    for iface in netifaces.interfaces():
+        addrs = netifaces.ifaddresses(iface)
+        if netifaces.AF_INET in addrs:
+            ip = addrs[netifaces.AF_INET][0]["addr"]
+            if not ip.startswith("127."):
+                interfaces.append({"name": iface, "ip": ip})
     return interfaces
 
 
@@ -224,31 +233,43 @@ def scan_ports(request):
     return render(request, "scanner/scan_ports.html", {"ip_addresses": ip_addresses})
 
 
+def get_hostname(ip):
+    try:
+        return socket.gethostbyaddr(ip)[0]
+    except socket.herror:
+        return ip  # Return the IP if hostname lookup fails
+
+
+def scapy_traceroute(ip_address, max_hops=30):
+    for ttl in range(1, max_hops + 1):
+        start_time = time.time()
+        pkt = IP(dst=ip_address, ttl=ttl) / ICMP()
+        reply = sr1(pkt, verbose=0, timeout=2)
+        end_time = time.time()
+
+        if reply is None:
+            yield f"{ttl}\t*\t*\t*"
+        else:
+            src_ip = reply.src
+            hostname = get_hostname(src_ip)
+            rtt = (end_time - start_time) * 1000
+            yield f"{ttl}\t{src_ip} {hostname}\t{rtt:.2f} ms"
+
+            if reply.type == 0:  # Echo Reply (reached destination)
+                break
+
+
 def traceroute(request):
     if request.method == "POST":
         ip_address = request.POST.get("ip_address")
 
         def traceroute_generator():
-            start_time = time.time()
-            process = subprocess.Popen(
-                ["traceroute", "-m", "30", "-q", "1", "-n", ip_address],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                universal_newlines=True,
-            )
-
             yield f"data: {json.dumps({'status': 'Starting traceroute...'})}\n\n"
 
-            for line in process.stdout:
-                yield f"data: {json.dumps({'status': 'In progress', 'line': line.strip()})}\n\n"
+            for line in scapy_traceroute(ip_address):
+                yield f"data: {json.dumps({'status': 'In progress', 'line': line})}\n\n"
 
-            process.wait(
-                timeout=60
-            )  # Wait up to 60 seconds for the process to complete
-
-            end_time = time.time()
-            total_time = round(end_time - start_time, 2)
-            yield f"data: {json.dumps({'status': 'Complete', 'total_time': total_time})}\n\n"
+            yield f"data: {json.dumps({'status': 'Complete'})}\n\n"
 
         return StreamingHttpResponse(
             traceroute_generator(), content_type="text/event-stream"

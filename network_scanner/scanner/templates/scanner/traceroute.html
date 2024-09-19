@@ -3,16 +3,16 @@
 {% block content %}
 <h1 class="text-2xl font-bold mb-4">Traceroute</h1>
 
-<form id="traceroute-form" method="post" class="max-w-600">
+<form id="traceroute-form" method="post" class="max-w-600 mb-4">
     {% csrf_token %}
     <div class="form-row">
         <div>
             <label for="ip_address" class="block mb-1">IP Address or Domain:</label>
-            <input type="text" name="ip_address" id="ip_address" required class="w-full mb-2">
+            <input type="text" name="ip_address" id="ip_address" required class="w-full mb-2 p-2 border rounded">
         </div>
     </div>
     <div class="form-row">
-        <button type="submit" class="btn-primary bg-blue-500 hover:bg-blue-600">
+        <button type="submit" class="btn-primary bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
             Run Traceroute
         </button>
     </div>
@@ -21,13 +21,15 @@
 <div id="status" class="mb-4 text-gray-600 font-semibold text-center hidden"></div>
 
 <div id="result" class="bg-white shadow overflow-hidden sm:rounded-lg hidden">
-    <table class="min-w-full divide-y divide-gray-200 table-compact">
-        <thead id="result-header" class="bg-gray-50 hidden">
-            <tr>
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead>
+            <tr class="bg-gray-50">
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Hop</th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     IP Address</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Hostname</th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     RTT (ms)</th>
             </tr>
@@ -43,12 +45,10 @@
         const formData = new FormData(this);
         const statusDiv = document.getElementById('status');
         const resultDiv = document.getElementById('result');
-        const resultHeader = document.getElementById('result-header');
         const resultBody = document.getElementById('result-body');
 
         statusDiv.classList.remove('hidden');
         resultDiv.classList.add('hidden');
-        resultHeader.classList.add('hidden');
         statusDiv.textContent = 'Starting traceroute...';
         resultBody.innerHTML = '';
 
@@ -73,22 +73,22 @@
                                 statusDiv.textContent = data.status;
                             } else if (data.status === 'In progress') {
                                 resultDiv.classList.remove('hidden');
-                                resultHeader.classList.remove('hidden');
-                                const parts = data.line.split(/\s+/);
-                                if (parts.length >= 4) {
+                                const parts = data.line.split('\t');
+                                if (parts.length >= 3) {
                                     const hop = parts[0];
-                                    const ip = parts[1];
-                                    const rtt = parts.slice(2).join(' ');
+                                    const [ip, hostname] = parts[1].split(' ');
+                                    const rtt = parts[2];
                                     const row = document.createElement('tr');
                                     row.innerHTML = `
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${hop}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${ip}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${hostname || '-'}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${rtt}</td>
                                     `;
                                     resultBody.appendChild(row);
                                 }
                             } else if (data.status === 'Complete') {
-                                statusDiv.textContent = `Traceroute complete. Total time: ${data.total_time} seconds`;
+                                statusDiv.textContent = 'Traceroute complete.';
                             }
                         }
                     });
