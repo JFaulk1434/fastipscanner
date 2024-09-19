@@ -20,13 +20,14 @@ jobs:
           pip install pyinstaller
       - name: Build with PyInstaller
         run: |
-          dir
-          pyinstaller --name=Nettools --onefile --windowed --add-data "network_scanner:network_scanner" --add-data "network_scanner/network_scanner/app_info.py:network_scanner" network_scanner/manage.py
+          ls -R  # List all files and directories
+          pyinstaller --name=Nettools --onefile --windowed --add-data "network_scanner;network_scanner" --add-data "network_scanner/network_scanner/app_info.py;network_scanner" network_scanner/manage.py
       - name: Install Inno Setup
         run: choco install innosetup -y
       - name: Get App Info
         run: |
-          echo "APP_INFO=$(python get_app_info.py)" >> $GITHUB_ENV
+          python get_app_info.py > app_info.txt
+          echo "APP_INFO=$(cat app_info.txt)" >> $env:GITHUB_ENV
       - name: Create Inno Setup Installer
         run: |
           dir dist
@@ -56,7 +57,9 @@ jobs:
           pip install pyinstaller
           brew install create-dmg
       - name: Build with PyInstaller
-        run: pyinstaller --name=Nettools --onefile --windowed --add-data "network_scanner:network_scanner" manage.py
+        run: |
+          ls -R
+          pyinstaller --name=Nettools --onefile --windowed --add-data "network_scanner:network_scanner" --add-data "network_scanner/network_scanner/app_info.py:network_scanner" network_scanner/manage.py
       - name: Create DMG
         run: |
           create-dmg \
