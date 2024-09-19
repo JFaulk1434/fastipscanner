@@ -1,5 +1,8 @@
 name: Build and Release
 
+permissions:
+  contents: write
+
 on:
   release:
     types: [created]
@@ -18,14 +21,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pyinstaller
+      - name: Collect static files
+        run: python network_scanner/manage.py collectstatic --noinput
       - name: Build with PyInstaller
         run: |
-          ls -R  # List all files and directories
-          pyinstaller --name=Nettools --onefile --windowed --add-data "network_scanner;network_scanner" --add-data "network_scanner/network_scanner/app_info.py;network_scanner" network_scanner/manage.py
+          pyinstaller --name=FastIPScanner --onefile --windowed \
+            --add-data "network_scanner:network_scanner" \
+            --add-data "network_scanner/network_scanner/app_info.py:network_scanner" \
+            --add-data "staticfiles:staticfiles" \
+            --add-data "network_scanner/scanner/migrations:network_scanner/scanner/migrations" \
+            network_scanner/manage.py
       - name: Install Inno Setup
         run: choco install innosetup -y
       - name: Get App Info
         run: |
+          python get_app_info.py
+          if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+          }
           python get_app_info.py > app_info.txt
           echo "APP_INFO=$(cat app_info.txt)" >> $env:GITHUB_ENV
       - name: Create Inno Setup Installer
@@ -33,14 +46,10 @@ jobs:
           dir dist
           iscc ${{ env.APP_INFO }} nettools_setup.iss
       - name: Upload Windows Installer
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/upload-artifact@v2
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./Output/nettools_setup.exe
-          asset_name: nettools_setup.exe
-          asset_content_type: application/vnd.microsoft.portable-executable
+          name: FastIPScanner-Installer.exe
+          path: ./Output/FastIPScanner_setup_*.exe
 
   build_macos:
     runs-on: macos-latest
@@ -73,11 +82,7 @@ jobs:
             "Nettools-Installer.dmg" \
             "dist/Nettools.app"
       - name: Upload macOS Installer
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/upload-artifact@v2
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./Nettools-Installer.dmg
-          asset_name: Nettools-Installer.dmg
-          asset_content_type: application/x-apple-diskimage
+          name: FastIPScanner-Installer.dmg
+          path: ./FastIPScanner-Installer.dmg

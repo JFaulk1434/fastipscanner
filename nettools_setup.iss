@@ -1,6 +1,6 @@
-#define MyAppName "Nettools"
-#define MyAppVersion "1.0.0"
-#define MyAppExeName "Nettools.exe"
+#define MyAppName "Fast IP Scanner"
+#define MyAppVersion GetEnv("APP_VERSION")
+#define MyAppExeName "FastIPScanner.exe"
 
 [Setup]
 AppName={#MyAppName}
@@ -8,7 +8,7 @@ AppVersion={#MyAppVersion}
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 OutputDir=Output
-OutputBaseFilename={#MyAppName}_setup_{#MyAppVersion}
+OutputBaseFilename=FastIPScanner_setup_{#MyAppVersion}
 
 [Files]
 Source: "dist\{#MyAppExeName}"; DestDir: "{app}"
