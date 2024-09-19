@@ -25,11 +25,11 @@ jobs:
         run: python network_scanner/manage.py collectstatic --noinput
       - name: Build with PyInstaller
         run: |
-          pyinstaller --name=FastIPScanner --onefile --windowed \
-            --add-data "network_scanner:network_scanner" \
-            --add-data "network_scanner/network_scanner/app_info.py:network_scanner" \
-            --add-data "staticfiles:staticfiles" \
-            --add-data "network_scanner/scanner/migrations:network_scanner/scanner/migrations" \
+          pyinstaller --name=FastIPScanner --onefile --windowed `
+            --add-data "network_scanner;network_scanner" `
+            --add-data "network_scanner/network_scanner/app_info.py;network_scanner" `
+            --add-data "staticfiles;staticfiles" `
+            --add-data "network_scanner/scanner/migrations;network_scanner/scanner/migrations" `
             network_scanner/manage.py
       - name: Install Inno Setup
         run: choco install innosetup -y
