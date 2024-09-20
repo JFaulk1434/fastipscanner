@@ -2,7 +2,6 @@ include README.md
 include LICENSE
 recursive-include fastipscanner/static *
 recursive-include fastipscanner/templates *
-include fastipscanner/app_info.py
 include fastipscanner/cli.py
 recursive-include fastipscanner *.py
 recursive-include scanner *.py

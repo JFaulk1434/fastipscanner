@@ -13,10 +13,9 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import sys
 from pathlib import Path
 import signal
-from .app_info import SITE_HEADER as site_header
+from setup import SITE_HEADER as site_header
 
-# Now explicitly set SITE_HEADER in settings
-SITE_HEADER = site_header  # This will use the value from app_info.py
+SITE_HEADER = site_header
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 if getattr(sys, "frozen", False):

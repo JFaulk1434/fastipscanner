@@ -1,15 +1,14 @@
-import os
 from setuptools import setup, find_packages
 
-# Import directly from app_info.py
-from fastipscanner.app_info import (
-    VERSION,
-    APP_NAME,
-    DESCRIPTION,
-    AUTHOR,
-    AUTHOR_EMAIL,
-    URL,
-)
+VERSION = "1.3.0"  # Increment this
+APP_NAME = "fast-ip-scanner"
+APP_DISPLAY_NAME = "Fast IP Scanner"
+DESCRIPTION = "A clean, user-friendly web interface for fast IP scanning, port scanning, and network analysis."
+SITE_HEADER = APP_DISPLAY_NAME
+AUTHOR = "Justin Faulk"
+AUTHOR_EMAIL = "deww1434@gmail.com"
+URL = "https://github.com/JFaulk1434/fastipscanner"
+PORT = 8099
 
 # Get the long description from the README file
 with open("README.md", encoding="utf-8") as f:
@@ -24,7 +23,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url=URL,
-    packages=["fastipscanner", "scanner"],  # Explicitly list your packages
+    packages=find_packages(),
     include_package_data=True,
     install_requires=[
         "django",
