@@ -1,41 +1,29 @@
 import os
 from setuptools import setup, find_packages
 
-# Get the absolute path to the directory containing this file (setup.py)
+VERSION = "1.2.5"
+APP_NAME = "Fast IP Scanner"
+DESCRIPTION = "A clean, user-friendly web interface for fast IP scanning, port scanning, and network analysis. Built with Django and Scapy, Fast IP Scanner provides powerful network tools with an intuitive UI."
+SITE_HEADER = APP_NAME
+AUTHOR = "Justin Faulk"
+AUTHOR_EMAIL = "deww1434@gmail.com"
+URL = "https://github.com/JFaulk1434/fastipscanner"
+PORT = 8099
+
+# Get the long description from the README file
 here = os.path.abspath(os.path.dirname(__file__))
-
-# Print current directory and its contents
-print("Current directory:", here)
-print("Contents:", os.listdir(here))
-
-# Construct the path to app_info.py
-app_info_path = os.path.join(here, "fastipscanner", "app_info.py")
-
-print("Attempting to read:", app_info_path)
-print("Does file exist?", os.path.exists(app_info_path))
-
-# Read app_info.py
-about = {}
-try:
-    with open(app_info_path, "r", encoding="utf-8") as f:
-        exec(f.read(), about)
-except FileNotFoundError:
-    print(f"FileNotFoundError: {app_info_path} does not exist")
-    raise
-
-# Read the contents of your README file
-with open(os.path.join(here, "README.md"), "r", encoding="utf-8") as fh:
-    long_description = fh.read()
+with open(os.path.join(here, "README.md"), encoding="utf-8") as f:
+    long_description = f.read()
 
 setup(
-    name=about.get("APP_NAME", "fastipscanner"),
-    version=about.get("VERSION", "0.1.0"),
-    author=about.get("AUTHOR", ""),
-    author_email=about.get("AUTHOR_EMAIL", ""),
-    description=about.get("DESCRIPTION", ""),
+    name=APP_NAME,
+    version=VERSION,
+    author=AUTHOR,
+    author_email=AUTHOR_EMAIL,
+    description=DESCRIPTION,
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url=about.get("URL", ""),
+    url=URL,
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
