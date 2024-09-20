@@ -23,7 +23,7 @@ jobs:
           pip install pyinstaller
       - name: Build with PyInstaller
         run: |
-          pyinstaller --name=FastIPScanner --onefile --windowed `
+          pyinstaller --name=FastIPScanner --onefile `
             --add-data "network_scanner;network_scanner" `
             --hidden-import django `
             --hidden-import django.core.management `
@@ -60,9 +60,15 @@ jobs:
         env:
           MACOSX_DEPLOYMENT_TARGET: "10.15"
         run: |
-          pyinstaller --name=FastIPScanner-${{ matrix.arch }} --onefile --windowed \
+          echo "Building for ${{ matrix.arch }}"
+          file $(which python)
+          python --version
+          arch
+          uname -m
+          pyinstaller --name=FastIPScanner-${{ matrix.arch }} --onefile \
             --add-data "network_scanner:network_scanner" \
             network_scanner/manage.py
+          file dist/FastIPScanner-${{ matrix.arch }}
       - name: Create DMG
         run: |
           hdiutil create -volname "FastIPScanner-${{ matrix.arch }}" -srcfolder dist/FastIPScanner-${{ matrix.arch }} -ov -format UDZO FastIPScanner-${{ matrix.arch }}.dmg
