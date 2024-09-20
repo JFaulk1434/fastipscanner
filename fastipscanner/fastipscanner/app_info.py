@@ -1,4 +1,4 @@
-VERSION = "1.2.1"
+VERSION = "1.2.2"
 APP_NAME = "Fast IP Scanner"
 DESCRIPTION = "A clean, user-friendly web interface for fast IP scanning, port scanning, and network analysis. Built with Django and Scapy, Fast IP Scanner provides powerful network tools with an intuitive UI."
 SITE_HEADER = APP_NAME
