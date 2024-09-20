@@ -23,7 +23,17 @@ jobs:
           pip install pyinstaller
       - name: Build with PyInstaller
         run: |
-          pyinstaller --name=FastIPScanner --onefile --windowed --add-data "network_scanner;network_scanner" network_scanner/manage.py
+          pyinstaller --name=FastIPScanner --onefile --windowed `
+            --add-data "network_scanner;network_scanner" `
+            --hidden-import django `
+            --hidden-import django.core.management `
+            --hidden-import django.core.management.commands `
+            --hidden-import django.conf `
+            --hidden-import django.db `
+            --hidden-import django.db.models `
+            --collect-submodules django `
+            --collect-data django `
+            network_scanner/manage.py
       - name: Upload Windows Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -32,6 +42,9 @@ jobs:
 
   build_macos:
     runs-on: macos-latest
+    strategy:
+      matrix:
+        arch: [x86_64, arm64]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -47,14 +60,14 @@ jobs:
         env:
           MACOSX_DEPLOYMENT_TARGET: "10.15"
         run: |
-          pyinstaller --name=FastIPScanner --onefile --windowed \
-            --target-architecture universal2 \
+          pyinstaller --name=FastIPScanner-${{ matrix.arch }} --onefile --windowed \
             --add-data "network_scanner:network_scanner" \
             network_scanner/manage.py
       - name: Create DMG
-        run: hdiutil create -volname "FastIPScanner" -srcfolder dist/FastIPScanner -ov -format UDZO FastIPScanner-macOS.dmg
+        run: |
+          hdiutil create -volname "FastIPScanner-${{ matrix.arch }}" -srcfolder dist/FastIPScanner-${{ matrix.arch }} -ov -format UDZO FastIPScanner-${{ matrix.arch }}.dmg
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: FastIPScanner-macOS
-          path: FastIPScanner-macOS.dmg
+          name: FastIPScanner-macOS-${{ matrix.arch }}
+          path: FastIPScanner-${{ matrix.arch }}.dmg
