@@ -1,12 +1,8 @@
 import os
 from setuptools import setup, find_packages
 
-# Add the project root to the Python path
-import sys
-
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
-
-from fastipscanner.fastipscanner.app_info import (
+# Import directly from app_info.py
+from fastipscanner.app_info import (
     VERSION,
     APP_NAME,
     DESCRIPTION,
@@ -16,8 +12,7 @@ from fastipscanner.fastipscanner.app_info import (
 )
 
 # Get the long description from the README file
-here = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(here, "README.md"), encoding="utf-8") as f:
+with open("README.md", encoding="utf-8") as f:
     long_description = f.read()
 
 setup(
@@ -29,7 +24,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url=URL,
-    packages=find_packages(),
+    packages=["fastipscanner", "scanner"],  # Explicitly list your packages
     include_package_data=True,
     install_requires=[
         "django",
