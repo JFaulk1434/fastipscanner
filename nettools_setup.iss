@@ -1,6 +1,6 @@
-#define MyAppName "Fast IP Scanner"
-#define MyAppVersion GetEnv("APP_VERSION")
-#define MyAppExeName "FastIPScanner.exe"
+#define MyAppName GetEnv("MyAppName")
+#define MyAppVersion GetEnv("MyAppVersion")
+#define MyAppExeName GetEnv("MyAppExeName")
 
 [Setup]
 AppName={#MyAppName}
@@ -12,7 +12,6 @@ OutputBaseFilename=FastIPScanner_setup_{#MyAppVersion}
 
 [Files]
 Source: "dist\{#MyAppExeName}"; DestDir: "{app}"
-Source: "dist\*"; DestDir: "{app}"; Flags: recursesubdirs
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
