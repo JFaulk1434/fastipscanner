@@ -1,15 +1,19 @@
 import os
 from setuptools import setup, find_packages
 
-VERSION = "1.2.6"
-APP_NAME = "fast_ip_scanner"
-APP_DISPLAY_NAME = "Fast IP Scanner"
-DESCRIPTION = "A clean, user-friendly web interface for fast IP scanning, port scanning, and network analysis. Built with Django and Scapy, Fast IP Scanner provides powerful network tools with an intuitive UI."
-SITE_HEADER = APP_DISPLAY_NAME
-AUTHOR = "Justin Faulk"
-AUTHOR_EMAIL = "deww1434@gmail.com"
-URL = "https://github.com/JFaulk1434/fastipscanner"
-PORT = 8099
+# Add the project root to the Python path
+import sys
+
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+
+from fastipscanner.fastipscanner.app_info import (
+    VERSION,
+    APP_NAME,
+    DESCRIPTION,
+    AUTHOR,
+    AUTHOR_EMAIL,
+    URL,
+)
 
 # Get the long description from the README file
 here = os.path.abspath(os.path.dirname(__file__))
@@ -49,7 +53,7 @@ setup(
     python_requires=">=3.7",
     entry_points={
         "console_scripts": [
-            "fastipscanner=fastipscanner.cli:main",
+            "fastip=fastipscanner.cli:main",
         ],
     },
 )

@@ -1,9 +1,10 @@
 # Fast IP Scanner
 
-![Network Scanner Logo](fastipscanner/static/images/logo_small.png)
+![Network Scanner Logo](https://raw.githubusercontent.com/JFaulk1434/webui_network_tools/main/fastipscanner/static/images/logo_small.png)
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/JFaulk1434/webui_network_tools)](https://github.com/JFaulk1434/webui_network_tools/releases)
 [![License](https://img.shields.io/github/license/JFaulk1434/webui_network_tools)](https://github.com/JFaulk1434/webui_network_tools/blob/main/LICENSE)
+[![PyPI version](https://badge.fury.io/py/fast-ip-scanner.svg)](https://badge.fury.io/py/fast-ip-scanner)
 
 A clean, user-friendly web interface for fast IP scanning, port scanning, and network analysis. Built with Django and Scapy, Fast IP Scanner provides powerful network tools with an intuitive UI.
 
@@ -26,64 +27,30 @@ A clean, user-friendly web interface for fast IP scanning, port scanning, and ne
 ### Quick Install
 
 ```bash
-pip install fast_ip_scanner
+pip install fast-ip-scanner
 ```
 
-To run the application, simply open a terminal or command prompt and type:
+### Running the Application
 
 ```bash
 fastip
 ```
 
-This will start the Fast IP Scanner on the default port (8099).
+This will start the Fast IP Scanner on the default port (8099) and open it in your default web browser.
 
-For advanced usage or to specify different Django commands, you can use:
-
-```bash
-fastip [django_command]
-```
-
-For example:
-
-- `fastip runserver 8080` to run on a different port
-- `fastip migrate` to run database migrations
+### Development Installation
 
 For the latest development version:
 
 ```bash
 git clone https://github.com/JFaulk1434/webui_network_tools.git
-cd nettools
+cd webui_network_tools
 pip install -e .
 ```
 
-### Detailed Installation Steps
-
-1. (Optional) Create and activate a virtual environment:
-
-   ```bash
-   python -m venv nettools_env
-   source nettools_env/bin/activate  # On Windows, use: nettools_env\Scripts\activate
-   ```
-
-2. Install Network Scanner:
-
-   ```bash
-   pip install nettools
-   ```
-
-3. Launch the application:
-
-   ```bash
-   nettools
-   ```
-
-   This will start the server and open a web browser to the application.
-
-4. To stop the server, press `CTRL+C` in the terminal.
-
 ## 📖 Usage
 
-After launching Network Scanner, you can:
+After launching Fast IP Scanner, you can:
 
 1. Perform network scans to discover devices on your network
 2. Conduct port scans on specific IP addresses
@@ -96,10 +63,10 @@ After launching Network Scanner, you can:
 If you encounter any issues:
 
 - Ensure Python and pip are correctly installed and added to your system PATH.
-- If using a virtual environment, make sure it's activated before installing or running Network Scanner.
+- If using a virtual environment, make sure it's activated before installing or running Fast IP Scanner.
 - Verify all dependencies are correctly installed by running `pip list`.
 
-For further assistance, please [open an issue](https://github.com/yourusername/nettools/issues) on our GitHub repository.
+For further assistance, please [open an issue](https://github.com/JFaulk1434/webui_network_tools/issues) on our GitHub repository.
 
 ## 📄 License
 
