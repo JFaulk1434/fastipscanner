@@ -1,5 +1,5 @@
-import os
 from setuptools import setup, find_packages
+import os
 
 # Read the contents of your README file
 with open("README.md", "r", encoding="utf-8") as fh:
@@ -14,32 +14,40 @@ with open(
     exec(f.read(), about)
 
 setup(
-    name="fast_ip_scanner",
-    version=about["APP_VERSION"],
-    description=about["APP_NAME"],
-    long_description=about["APP_DESCRIPTION"],
+    name="fastipscanner",
+    version="1.0.1",
+    author="JFaulk1434",
+    author_email="deww1434@gmail.com",
+    description="A fast IP scanner with a web interface",
+    long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/JFaulk1434/webui_network_tools",
+    url="https://github.com/JFaulk1434/fastipscanner",
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
         "django",
-        "manuf",
+        "scapy",
         "netifaces",
         "psutil",
-        "scapy",
         "whitenoise",
-        # Add other dependencies here
+        "manuf",
+        # Add any other dependencies here
     ],
     classifiers=[
-        "Programming Language :: Python :: 3",
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
     ],
     python_requires=">=3.7",
     entry_points={
         "console_scripts": [
-            "fastip=network_scanner.manage:main",
+            "fastipscanner=fastipscanner.manage:main",
         ],
     },
 )

@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import sys
 from pathlib import Path
 import signal
-from network_scanner.app_info import APP_NAME, APP_VERSION
+from fastipscanner.app_info import APP_NAME, APP_VERSION
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 if getattr(sys, "frozen", False):

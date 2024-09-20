@@ -162,4 +162,4 @@ cython_debug/
 #.idea/
 
 # Static files
-network_scanner/staticfiles
+fastipscanner/staticfiles
