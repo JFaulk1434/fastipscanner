@@ -1,3 +1,5 @@
 include README.md
-recursive-include fastipscanner/network_scanner/static *
-recursive-include fastipscanner/network_scanner/templates *
+recursive-include fastipscanner/static *
+recursive-include fastipscanner/templates *
+include fastipscanner/app_info.py
+include fastipscanner/cli.py

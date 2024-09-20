@@ -1,8 +1,8 @@
-from django.conf import settings
+from .app_info import APP_NAME, VERSION
 
 
 def app_info(request):
     return {
-        "APP_NAME": settings.SITE_HEADER,
-        "VERSION": settings.VERSION,
+        "APP_NAME": APP_NAME,
+        "VERSION": VERSION,
     }

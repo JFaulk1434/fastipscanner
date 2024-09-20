@@ -77,17 +77,17 @@
             scanningMessage.style.display = 'block';
             let progress = 0;
             const interval = setInterval(function () {
-                progress += 2; // Increase by 2% every 100ms
+                progress += 1.25; // Increase by 1.25% every 100ms (slower increment)
                 progressFill.style.width = progress + '%';
                 if (progress >= 100) {
                     clearInterval(interval);
                 }
             }, 100); // Update every 100ms
 
-            // Hide the progress bar after 5.5 seconds (5 seconds scan + 0.5 seconds buffer)
+            // Hide the progress bar after 7.5 seconds (7 seconds scan + 0.5 seconds buffer)
             setTimeout(function () {
                 scanningMessage.style.display = 'none';
-            }, 5500);
+            }, 7500);
         });
 
         // Alias editing functionality

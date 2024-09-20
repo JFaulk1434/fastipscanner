@@ -1,6 +1,6 @@
 # Fast IP Scanner
 
-![Network Scanner Logo](network_scanner/static/images/logo_small.png)
+![Network Scanner Logo](fastipscanner/static/images/logo_small.png)
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/JFaulk1434/webui_network_tools)](https://github.com/JFaulk1434/webui_network_tools/releases)
 [![License](https://img.shields.io/github/license/JFaulk1434/webui_network_tools)](https://github.com/JFaulk1434/webui_network_tools/blob/main/LICENSE)
