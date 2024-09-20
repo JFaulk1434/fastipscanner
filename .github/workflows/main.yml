@@ -22,14 +22,13 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
       - name: Build with PyInstaller
-        run: pyinstaller --name=FastIPScanner --onefile --windowed network_scanner/manage.py
-      - name: Zip output
-        run: Compress-Archive -Path dist\FastIPScanner.exe -DestinationPath FastIPScanner-Windows.zip
+        run: |
+          pyinstaller --name=FastIPScanner --onefile --windowed --add-data "network_scanner;network_scanner" network_scanner/manage.py
       - name: Upload Windows Artifact
         uses: actions/upload-artifact@v4
         with:
           name: FastIPScanner-Windows
-          path: FastIPScanner-Windows.zip
+          path: dist/FastIPScanner.exe
 
   build_macos:
     runs-on: macos-latest
@@ -45,7 +44,13 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
       - name: Build with PyInstaller
-        run: pyinstaller --name=FastIPScanner --onefile --windowed network_scanner/manage.py
+        env:
+          MACOSX_DEPLOYMENT_TARGET: "10.15"
+        run: |
+          pyinstaller --name=FastIPScanner --onefile --windowed \
+            --target-architecture universal2 \
+            --add-data "network_scanner:network_scanner" \
+            network_scanner/manage.py
       - name: Create DMG
         run: hdiutil create -volname "FastIPScanner" -srcfolder dist/FastIPScanner -ov -format UDZO FastIPScanner-macOS.dmg
       - name: Upload macOS Artifact

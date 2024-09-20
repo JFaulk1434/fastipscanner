@@ -1,5 +1,5 @@
 APP_NAME = "Fast IP Scanner"
-APP_VERSION = "1.1.15"
+APP_VERSION = "1.1.16"
 APP_EXECUTABLE_NAME = "FastIPScanner"  # This will be used for the .exe name
 APP_DESCRIPTION = """
 Fast IP Scanner is a powerful and user-friendly network analysis tool. 

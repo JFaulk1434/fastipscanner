@@ -10,13 +10,16 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+import sys
 from pathlib import Path
 import signal
-import sys
 from network_scanner.app_info import APP_NAME, APP_VERSION
 
-# Check if we're running in a PyInstaller bundle
-if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+if getattr(sys, "frozen", False):
+    # If the application is run as a bundle, the PyInstaller bootloader
+    # extends the sys module by a flag frozen=True and sets the app
+    # path into variable _MEIPASS'.
     BASE_DIR = Path(sys._MEIPASS)
 else:
     BASE_DIR = Path(__file__).resolve().parent.parent
