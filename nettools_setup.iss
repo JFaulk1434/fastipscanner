@@ -1,11 +1,11 @@
-#define MyAppName GetEnv("MyAppName")
-#define MyAppVersion GetEnv("MyAppVersion")
-#define MyAppExeName GetEnv("MyAppExeName")
+#define MyAppName "Fast IP Scanner"
+#define MyAppVersion GetEnv("APP_VERSION")
+#define MyAppExeName "FastIPScanner.exe"
 
 [Setup]
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-DefaultDirName={pf}\{#MyAppName}
+DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 OutputDir=Output
 OutputBaseFilename=FastIPScanner_setup_{#MyAppVersion}

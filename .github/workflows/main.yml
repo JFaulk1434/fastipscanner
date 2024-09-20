@@ -1,4 +1,4 @@
-name: Build and Release
+name: Build Installers
 
 permissions:
   contents: write
@@ -21,45 +21,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pyinstaller
-      - name: Debug environment
-        run: |
-          echo "Current directory:"
-          pwd
-          echo "Directory contents:"
-          dir
-          echo "Python version:"
-          python --version
-          echo "Django version:"
-          python -c "import django; print(django.__version__)"
-      - name: Collect static files
-        run: |
-          python network_scanner/manage.py collectstatic --noinput --verbosity 2
-          echo "Contents of project root after collectstatic:"
-          dir
-          echo "Contents of network_scanner directory:"
-          dir network_scanner
       - name: Build with PyInstaller
-        run: |
-          pyinstaller --name=FastIPScanner --onefile --windowed `
-            --add-data "network_scanner;network_scanner" `
-            --add-data "network_scanner/network_scanner/app_info.py;network_scanner" `
-            --add-data "network_scanner/staticfiles;staticfiles" `
-            --add-data "network_scanner/scanner/migrations;network_scanner/scanner/migrations" `
-            network_scanner/manage.py
-      - name: Install Inno Setup
-        run: choco install innosetup -y
-      - name: Get App Info
-        run: |
-          python get_app_info.py | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-      - name: Create Inno Setup Installer
-        run: |
-          dir dist
-          iscc ${{ env.APP_INFO }} nettools_setup.iss
-      - name: Upload Windows Installer
+        run: pyinstaller --name=FastIPScanner --onefile --windowed network_scanner/manage.py
+      - name: Zip output
+        run: Compress-Archive -Path dist\FastIPScanner.exe -DestinationPath FastIPScanner-Windows.zip
+      - name: Upload Windows Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: FastIPScanner-Installer.exe
-          path: ./Output/FastIPScanner_setup_*.exe
+          name: FastIPScanner-Windows
+          path: FastIPScanner-Windows.zip
 
   build_macos:
     runs-on: macos-latest
@@ -74,51 +44,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pyinstaller
-          brew install create-dmg
       - name: Build with PyInstaller
-        env:
-          MACOSX_DEPLOYMENT_TARGET: "10.15"
-        run: |
-          pyinstaller --name=FastIPScanner --onefile --windowed \
-            --add-data "network_scanner:network_scanner" \
-            --add-data "network_scanner/network_scanner/app_info.py:network_scanner" \
-            --target-architecture universal2 \
-            network_scanner/manage.py
-      - name: Code Sign Application
-        env:
-          CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE }}
-          CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-        run: |
-          echo $CERTIFICATE_BASE64 | base64 --decode > certificate.p12
-          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          security import certificate.p12 -k build.keychain -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
-          /usr/bin/codesign --force -s "Developer ID Application" --options runtime ./dist/FastIPScanner.app -v
+        run: pyinstaller --name=FastIPScanner --onefile --windowed network_scanner/manage.py
       - name: Create DMG
-        run: |
-          create-dmg \
-            --volname "Fast IP Scanner Installer" \
-            --window-pos 200 120 \
-            --window-size 800 400 \
-            --icon-size 100 \
-            --icon "FastIPScanner.app" 200 190 \
-            --hide-extension "FastIPScanner.app" \
-            --app-drop-link 600 185 \
-            "FastIPScanner-Installer.dmg" \
-            "dist/FastIPScanner.app"
-      - name: Notarize DMG
-        env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: |
-          xcrun notarytool submit FastIPScanner-Installer.dmg --wait --apple-id "$APPLE_ID" --password "$APPLE_ID_PASSWORD" --team-id "$TEAM_ID"
-          xcrun stapler staple FastIPScanner-Installer.dmg
-      - name: Upload macOS Installer
+        run: hdiutil create -volname "FastIPScanner" -srcfolder dist/FastIPScanner -ov -format UDZO FastIPScanner-macOS.dmg
+      - name: Upload macOS Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: FastIPScanner-Installer.dmg
-          path: ./FastIPScanner-Installer.dmg
+          name: FastIPScanner-macOS
+          path: FastIPScanner-macOS.dmg

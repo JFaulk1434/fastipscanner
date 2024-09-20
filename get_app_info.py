@@ -10,7 +10,6 @@ try:
 
     print(f"APP_NAME={APP_NAME}")
     print(f"APP_VERSION={APP_VERSION}")
-    print("APP_EXECUTABLE_NAME=FastIPScanner.exe")
 except ImportError as e:
     print(f"Error: Could not import app_info. Details: {e}", file=sys.stderr)
     sys.exit(1)
