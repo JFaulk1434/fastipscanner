@@ -1,4 +1,4 @@
-from setup import APP_NAME, VERSION
+from .app_info import APP_NAME, VERSION
 
 
 def app_info(request):

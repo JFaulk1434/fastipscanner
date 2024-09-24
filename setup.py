@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = "1.3.0"  # Increment this
+VERSION = "1.3.1"  # Incremented from 1.3.0
 APP_NAME = "fast-ip-scanner"
 APP_DISPLAY_NAME = "Fast IP Scanner"
 DESCRIPTION = "A clean, user-friendly web interface for fast IP scanning, port scanning, and network analysis."
@@ -23,7 +23,8 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url=URL,
-    packages=find_packages(),
+    packages=find_packages(where="."),
+    package_dir={"": "."},
     include_package_data=True,
     install_requires=[
         "django",
@@ -47,7 +48,7 @@ setup(
     python_requires=">=3.7",
     entry_points={
         "console_scripts": [
-            "fastip=fastipscanner.cli:main",
+            "fastip=fastipscanner.fastipscanner.cli:main",
         ],
     },
 )

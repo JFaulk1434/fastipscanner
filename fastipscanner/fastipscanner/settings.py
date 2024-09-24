@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import sys
 from pathlib import Path
 import signal
-from setup import SITE_HEADER as site_header
+from .app_info import SITE_HEADER as site_header
 
 SITE_HEADER = site_header
 
