@@ -94,10 +94,10 @@
         document.querySelectorAll('.alias-text, .edit-icon').forEach(el => {
             el.addEventListener('click', function () {
                 const id = this.dataset.id;
-                const container = this.closest('div');
-                const span = container.querySelector('.alias-text');
-                const input = container.querySelector('.alias-input');
-                const icon = container.querySelector('.edit-icon');
+                const cell = this.closest('.alias-cell');
+                const span = cell.querySelector('.alias-text');
+                const input = cell.querySelector('.alias-input');
+                const icon = cell.querySelector('.edit-icon');
 
                 span.style.display = 'none';
                 input.style.display = 'block';
@@ -109,9 +109,9 @@
         document.querySelectorAll('.alias-input').forEach(input => {
             input.addEventListener('blur', function () {
                 const id = this.dataset.id;
-                const container = this.closest('div');
-                const span = container.querySelector('.alias-text');
-                const icon = container.querySelector('.edit-icon');
+                const cell = this.closest('.alias-cell');
+                const span = cell.querySelector('.alias-text');
+                const icon = cell.querySelector('.edit-icon');
                 const newAlias = this.value.trim();
 
                 fetch('{% url "update_alias" %}', {
